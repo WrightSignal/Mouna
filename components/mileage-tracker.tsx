@@ -42,10 +42,19 @@ export function MileageTracker() {
         .order("date", { ascending: false })
         .limit(10)
 
-      if (error) throw error
+      if (error) {
+        // If table doesn't exist, just show empty state
+        if (error.code === "42P01") {
+          console.log("Mileage entries table not found - please run database setup")
+          setEntries([])
+          return
+        }
+        throw error
+      }
       setEntries(data || [])
     } catch (error: any) {
       console.error("Error fetching mileage entries:", error)
+      setEntries([])
     }
   }
 

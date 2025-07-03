@@ -7,6 +7,7 @@ import { useAuth } from "@/lib/auth-context"
 import { supabase } from "@/lib/supabase"
 import { useToast } from "@/hooks/use-toast"
 import { Play, Square, Clock } from "lucide-react"
+import { formatTimeInTimezone } from "@/lib/timezone-utils"
 
 export function TimeTracker() {
   const { user } = useAuth()
@@ -15,9 +16,13 @@ export function TimeTracker() {
   const [currentEntry, setCurrentEntry] = useState<any>(null)
   const [elapsedTime, setElapsedTime] = useState(0)
   const [loading, setLoading] = useState(false)
+  const [userTimezone, setUserTimezone] = useState("America/New_York")
 
   useEffect(() => {
-    checkActiveEntry()
+    if (user) {
+      fetchUserProfile()
+      checkActiveEntry()
+    }
   }, [user])
 
   useEffect(() => {
@@ -32,6 +37,19 @@ export function TimeTracker() {
     return () => clearInterval(interval)
   }, [isClocked, currentEntry])
 
+  const fetchUserProfile = async () => {
+    try {
+      const { data, error } = await supabase.from("user_profiles").select("timezone").eq("id", user?.id).single()
+
+      if (error) throw error
+      if (data?.timezone) {
+        setUserTimezone(data.timezone)
+      }
+    } catch (error: any) {
+      console.error("Error fetching user profile:", error)
+    }
+  }
+
   const checkActiveEntry = async () => {
     try {
       const { data, error } = await supabase
@@ -42,7 +60,14 @@ export function TimeTracker() {
         .order("created_at", { ascending: false })
         .limit(1)
 
-      if (error) throw error
+      if (error) {
+        // If table doesn't exist, just continue without active entry
+        if (error.code === "42P01") {
+          console.log("Time entries table not found - please run database setup")
+          return
+        }
+        throw error
+      }
 
       if (data && data.length > 0) {
         setCurrentEntry(data[0])
@@ -76,7 +101,7 @@ export function TimeTracker() {
 
       toast({
         title: "Clocked in",
-        description: "Your shift has started. Timer is now running.",
+        description: `Your shift has started at ${formatTimeInTimezone(new Date(), userTimezone)}`,
       })
     } catch (error: any) {
       toast({
@@ -94,11 +119,12 @@ export function TimeTracker() {
 
     setLoading(true)
     try {
+      const clockOutTime = new Date()
       const { error } = await supabase
         .from("time_entries")
         .update({
-          clock_out: new Date().toISOString(),
-          updated_at: new Date().toISOString(),
+          clock_out: clockOutTime.toISOString(),
+          updated_at: clockOutTime.toISOString(),
         })
         .eq("id", currentEntry.id)
 
@@ -113,7 +139,7 @@ export function TimeTracker() {
 
       toast({
         title: "Clocked out",
-        description: `Shift completed: ${hours}h ${minutes}m`,
+        description: `Shift completed at ${formatTimeInTimezone(clockOutTime, userTimezone)} - Duration: ${hours}h ${minutes}m`,
       })
     } catch (error: any) {
       toast({
@@ -147,7 +173,7 @@ export function TimeTracker() {
           <div className="text-center">
             <div className="text-4xl font-mono font-bold text-purple-600 mb-2">{formatTime(elapsedTime)}</div>
             <p className="text-sm text-gray-600">
-              Started at {currentEntry && new Date(currentEntry.clock_in).toLocaleTimeString()}
+              Started at {currentEntry && formatTimeInTimezone(currentEntry.clock_in, userTimezone)}
             </p>
           </div>
         )}
@@ -172,6 +198,11 @@ export function TimeTracker() {
         </div>
 
         {loading && <div className="text-center text-sm text-gray-600">Processing...</div>}
+
+        {/* Current time in user's timezone */}
+        <div className="text-center text-sm text-gray-500">
+          Current time: {formatTimeInTimezone(new Date(), userTimezone)}
+        </div>
       </CardContent>
     </Card>
   )

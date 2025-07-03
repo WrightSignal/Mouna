@@ -17,6 +17,8 @@ export type Database = {
           pto_balance_vacation: number | null
           pto_balance_sick: number | null
           pto_balance_personal: number | null
+          profile_picture_url: string | null
+          timezone: string | null
           created_at: string
           updated_at: string
         }
@@ -28,6 +30,8 @@ export type Database = {
           pto_balance_vacation?: number | null
           pto_balance_sick?: number | null
           pto_balance_personal?: number | null
+          profile_picture_url?: string | null
+          timezone?: string | null
           created_at?: string
           updated_at?: string
         }
@@ -39,6 +43,8 @@ export type Database = {
           pto_balance_vacation?: number | null
           pto_balance_sick?: number | null
           pto_balance_personal?: number | null
+          profile_picture_url?: string | null
+          timezone?: string | null
           created_at?: string
           updated_at?: string
         }
@@ -118,4 +124,31 @@ export type Database = {
       }
     }
   }
+}
+
+// Helper function to upload profile picture
+export const uploadProfilePicture = async (userId: string, file: File) => {
+  const fileExt = file.name.split(".").pop()
+  const fileName = `${userId}/profile.${fileExt}`
+
+  const { data, error } = await supabase.storage.from("profile-pictures").upload(fileName, file, {
+    upsert: true,
+  })
+
+  if (error) throw error
+
+  const {
+    data: { publicUrl },
+  } = supabase.storage.from("profile-pictures").getPublicUrl(fileName)
+
+  return publicUrl
+}
+
+// Helper function to delete profile picture
+export const deleteProfilePicture = async (userId: string) => {
+  const { error } = await supabase.storage
+    .from("profile-pictures")
+    .remove([`${userId}/profile.jpg`, `${userId}/profile.jpeg`, `${userId}/profile.png`, `${userId}/profile.webp`])
+
+  if (error) console.error("Error deleting profile picture:", error)
 }

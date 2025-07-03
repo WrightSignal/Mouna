@@ -33,7 +33,13 @@ export function MileageSummary() {
         .eq("user_id", user?.id)
         .gte("date", thisMonthStart.toISOString().split("T")[0])
 
-      if (thisMonthError) throw thisMonthError
+      if (thisMonthError) {
+        if (thisMonthError.code === "42P01") {
+          console.log("Mileage entries table not found - please run database setup")
+          return
+        }
+        throw thisMonthError
+      }
 
       // Last month
       const { data: lastMonthData, error: lastMonthError } = await supabase
@@ -43,7 +49,13 @@ export function MileageSummary() {
         .gte("date", lastMonthStart.toISOString().split("T")[0])
         .lte("date", lastMonthEnd.toISOString().split("T")[0])
 
-      if (lastMonthError) throw lastMonthError
+      if (lastMonthError) {
+        if (lastMonthError.code === "42P01") {
+          console.log("Mileage entries table not found - please run database setup")
+          return
+        }
+        throw lastMonthError
+      }
 
       const calculateTotals = (data: any[]) => {
         return data.reduce(

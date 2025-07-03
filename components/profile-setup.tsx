@@ -7,10 +7,14 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Separator } from "@/components/ui/separator"
 import { useAuth } from "@/lib/auth-context"
 import { supabase } from "@/lib/supabase"
 import { useToast } from "@/hooks/use-toast"
 import { User } from "lucide-react"
+import { ProfilePictureUpload } from "./profile-picture-upload"
+import { TimezoneSelector } from "./timezone-selector"
+import { getDetectedTimezone } from "@/lib/timezone-utils"
 
 interface ProfileSetupProps {
   onProfileCreated: () => void
@@ -21,6 +25,7 @@ export function ProfileSetup({ onProfileCreated, existingProfile }: ProfileSetup
   const { user } = useAuth()
   const { toast } = useToast()
   const [loading, setLoading] = useState(false)
+  const [profilePictureUrl, setProfilePictureUrl] = useState<string | null>(null)
   const [formData, setFormData] = useState({
     first_name: "",
     last_name: "",
@@ -28,6 +33,7 @@ export function ProfileSetup({ onProfileCreated, existingProfile }: ProfileSetup
     pto_balance_vacation: "0",
     pto_balance_sick: "0",
     pto_balance_personal: "0",
+    timezone: getDetectedTimezone(),
   })
 
   useEffect(() => {
@@ -39,7 +45,9 @@ export function ProfileSetup({ onProfileCreated, existingProfile }: ProfileSetup
         pto_balance_vacation: existingProfile.pto_balance_vacation?.toString() || "0",
         pto_balance_sick: existingProfile.pto_balance_sick?.toString() || "0",
         pto_balance_personal: existingProfile.pto_balance_personal?.toString() || "0",
+        timezone: existingProfile.timezone || getDetectedTimezone(),
       })
+      setProfilePictureUrl(existingProfile.profile_picture_url)
     }
   }, [existingProfile])
 
@@ -56,6 +64,8 @@ export function ProfileSetup({ onProfileCreated, existingProfile }: ProfileSetup
         pto_balance_vacation: Number.parseFloat(formData.pto_balance_vacation) || 0,
         pto_balance_sick: Number.parseFloat(formData.pto_balance_sick) || 0,
         pto_balance_personal: Number.parseFloat(formData.pto_balance_personal) || 0,
+        profile_picture_url: profilePictureUrl,
+        timezone: formData.timezone,
         updated_at: new Date().toISOString(),
       }
 
@@ -82,9 +92,19 @@ export function ProfileSetup({ onProfileCreated, existingProfile }: ProfileSetup
     }
   }
 
+  const getDisplayName = () => {
+    if (formData.first_name && formData.last_name) {
+      return `${formData.first_name} ${formData.last_name}`
+    }
+    if (formData.first_name) {
+      return formData.first_name
+    }
+    return "User"
+  }
+
   return (
-    <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4">
-      <div className="w-full max-w-md">
+    <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4 py-8">
+      <div className="w-full max-w-2xl">
         <div className="text-center mb-8">
           <div className="flex items-center justify-center mb-4">
             <div className="bg-purple-600 p-3 rounded-full">
@@ -96,57 +116,89 @@ export function ProfileSetup({ onProfileCreated, existingProfile }: ProfileSetup
           </h1>
           <p className="text-gray-600 mt-2">
             {existingProfile
-              ? "Update your profile information"
-              : "Let's get your profile set up to start tracking time"}
+              ? "Update your profile information and preferences"
+              : "Let's get your profile set up to start tracking time accurately"}
           </p>
         </div>
 
         <Card>
           <CardHeader>
             <CardTitle>Profile Information</CardTitle>
-            <CardDescription>Enter your basic information and hourly rate.</CardDescription>
+            <CardDescription>
+              Enter your basic information, upload a profile picture, and set your timezone.
+            </CardDescription>
           </CardHeader>
           <CardContent>
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="first_name">First Name</Label>
-                  <Input
-                    id="first_name"
-                    type="text"
-                    placeholder="First name"
-                    value={formData.first_name}
-                    onChange={(e) => setFormData({ ...formData, first_name: e.target.value })}
-                    required
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="last_name">Last Name</Label>
-                  <Input
-                    id="last_name"
-                    type="text"
-                    placeholder="Last name"
-                    value={formData.last_name}
-                    onChange={(e) => setFormData({ ...formData, last_name: e.target.value })}
-                    required
-                  />
-                </div>
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="hourly_rate">Hourly Rate ($)</Label>
-                <Input
-                  id="hourly_rate"
-                  type="number"
-                  step="0.01"
-                  placeholder="25.00"
-                  value={formData.hourly_rate}
-                  onChange={(e) => setFormData({ ...formData, hourly_rate: e.target.value })}
+            <form onSubmit={handleSubmit} className="space-y-6">
+              {/* Profile Picture Upload */}
+              <div className="flex justify-center">
+                <ProfilePictureUpload
+                  userId={user?.id || ""}
+                  currentImageUrl={profilePictureUrl}
+                  userName={getDisplayName()}
+                  onImageUpdate={setProfilePictureUrl}
                 />
               </div>
 
+              <Separator />
+
+              {/* Basic Information */}
               <div className="space-y-4">
-                <Label className="text-base font-medium">PTO Balances (Days)</Label>
+                <h3 className="text-lg font-medium">Basic Information</h3>
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="first_name">First Name</Label>
+                    <Input
+                      id="first_name"
+                      type="text"
+                      placeholder="First name"
+                      value={formData.first_name}
+                      onChange={(e) => setFormData({ ...formData, first_name: e.target.value })}
+                      required
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="last_name">Last Name</Label>
+                    <Input
+                      id="last_name"
+                      type="text"
+                      placeholder="Last name"
+                      value={formData.last_name}
+                      onChange={(e) => setFormData({ ...formData, last_name: e.target.value })}
+                      required
+                    />
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="hourly_rate">Hourly Rate ($)</Label>
+                  <Input
+                    id="hourly_rate"
+                    type="number"
+                    step="0.01"
+                    placeholder="25.00"
+                    value={formData.hourly_rate}
+                    onChange={(e) => setFormData({ ...formData, hourly_rate: e.target.value })}
+                  />
+                </div>
+              </div>
+
+              <Separator />
+
+              {/* Timezone Settings */}
+              <div className="space-y-4">
+                <h3 className="text-lg font-medium">Time Zone Settings</h3>
+                <TimezoneSelector
+                  value={formData.timezone}
+                  onChange={(timezone) => setFormData({ ...formData, timezone })}
+                />
+              </div>
+
+              <Separator />
+
+              {/* PTO Balances */}
+              <div className="space-y-4">
+                <h3 className="text-lg font-medium">PTO Balances (Days)</h3>
                 <div className="grid grid-cols-3 gap-4">
                   <div className="space-y-2">
                     <Label htmlFor="vacation" className="text-sm">

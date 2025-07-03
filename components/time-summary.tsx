@@ -37,7 +37,14 @@ export function TimeSummary() {
         .not("clock_out", "is", null)
         .gte("clock_in", monthStart.toISOString())
 
-      if (error) throw error
+      if (error) {
+        // If table doesn't exist, just show zeros
+        if (error.code === "42P01") {
+          console.log("Time entries table not found - please run database setup")
+          return
+        }
+        throw error
+      }
 
       let todayHours = 0
       let weekHours = 0

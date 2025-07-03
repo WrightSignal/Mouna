@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { useAuth } from "@/lib/auth-context"
 import { supabase } from "@/lib/supabase"
 import { useToast } from "@/hooks/use-toast"
@@ -30,13 +31,24 @@ export function Dashboard() {
     try {
       const { data, error } = await supabase.from("user_profiles").select("*").eq("id", user?.id).single()
 
-      if (error && error.code !== "PGRST116") {
-        throw error
+      if (error) {
+        // If table doesn't exist or no profile found, show profile setup
+        if (error.code === "PGRST116" || error.code === "42P01") {
+          setProfile(null)
+        } else {
+          console.error("Error fetching profile:", error)
+          toast({
+            title: "Database Error",
+            description: "Please make sure the database tables are set up correctly.",
+            variant: "destructive",
+          })
+        }
+      } else {
+        setProfile(data)
       }
-
-      setProfile(data)
     } catch (error: any) {
       console.error("Error fetching profile:", error)
+      setProfile(null)
     } finally {
       setLoading(false)
     }
@@ -50,6 +62,25 @@ export function Dashboard() {
     })
   }
 
+  const getDisplayName = () => {
+    if (profile?.first_name && profile?.last_name) {
+      return `${profile.first_name} ${profile.last_name}`
+    }
+    if (profile?.first_name) {
+      return profile.first_name
+    }
+    return "User"
+  }
+
+  const getInitials = (name: string) => {
+    return name
+      .split(" ")
+      .map((n) => n[0])
+      .join("")
+      .toUpperCase()
+      .slice(0, 2)
+  }
+
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -61,6 +92,8 @@ export function Dashboard() {
   if (!profile) {
     return <ProfileSetup onProfileCreated={fetchProfile} />
   }
+
+  const displayName = getDisplayName()
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -77,7 +110,15 @@ export function Dashboard() {
               </div>
             </div>
             <div className="flex items-center space-x-4">
-              <span className="text-sm text-gray-600">Welcome, {profile.first_name || "User"}</span>
+              <div className="flex items-center space-x-3">
+                <Avatar className="h-8 w-8">
+                  <AvatarImage src={profile.profile_picture_url || undefined} alt={displayName} />
+                  <AvatarFallback className="bg-purple-100 text-purple-600 text-sm">
+                    {getInitials(displayName)}
+                  </AvatarFallback>
+                </Avatar>
+                <span className="text-sm text-gray-600">Welcome, {profile.first_name || "User"}</span>
+              </div>
               <Button variant="ghost" size="sm" onClick={handleSignOut}>
                 <LogOut className="h-4 w-4 mr-2" />
                 Sign Out
