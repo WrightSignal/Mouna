@@ -5,7 +5,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { useAuth } from "@/lib/auth-context"
 import { supabase } from "@/lib/supabase"
 import { TrendingUp } from "lucide-react"
-import { getCurrentTimeInTimezone, convertUTCToTimezone, calculateDuration } from "@/lib/timezone-utils"
+import { calculateDuration } from "@/lib/timezone-utils"
 
 export function TimeSummary() {
   const { user } = useAuth()
@@ -44,10 +44,10 @@ export function TimeSummary() {
 
   const fetchTimeSummary = async () => {
     try {
-      // Get current time in user's timezone
-      const now = getCurrentTimeInTimezone(userTimezone)
+      // Get current time
+      const now = new Date()
 
-      // Calculate date boundaries in user's timezone
+      // Calculate date boundaries in UTC for database queries
       const today = new Date(now.getFullYear(), now.getMonth(), now.getDate())
       const weekStart = new Date(today)
       weekStart.setDate(today.getDate() - today.getDay())
@@ -75,22 +75,37 @@ export function TimeSummary() {
       let monthHours = 0
 
       data?.forEach((entry) => {
-        // Convert UTC times to user's timezone for comparison
-        const clockInLocal = convertUTCToTimezone(entry.clock_in, userTimezone)
-        const clockOutLocal = convertUTCToTimezone(entry.clock_out, userTimezone)
+        // Convert UTC times to user's timezone for date comparison
+        const clockInLocal = new Date(entry.clock_in)
+        const clockOutLocal = new Date(entry.clock_out)
 
         // Calculate duration in hours
         const durationSeconds = calculateDuration(entry.clock_in, entry.clock_out)
         const breakHours = (entry.break_duration || 0) / 60 // convert minutes to hours
         const workHours = durationSeconds / 3600 - breakHours // convert seconds to hours
 
-        // Check if the entry falls within our date ranges (using local timezone dates)
-        const entryDate = new Date(clockInLocal.getFullYear(), clockInLocal.getMonth(), clockInLocal.getDate())
+        // Get the date in user's timezone for comparison
+        const entryDateInTimezone = new Date(clockInLocal.toLocaleString("en-US", { timeZone: userTimezone }))
+        const todayInTimezone = new Date(now.toLocaleString("en-US", { timeZone: userTimezone }))
+        const weekStartInTimezone = new Date(todayInTimezone)
+        weekStartInTimezone.setDate(todayInTimezone.getDate() - todayInTimezone.getDay())
 
-        if (entryDate.getTime() === today.getTime()) {
+        const entryDate = new Date(
+          entryDateInTimezone.getFullYear(),
+          entryDateInTimezone.getMonth(),
+          entryDateInTimezone.getDate(),
+        )
+        const todayDate = new Date(todayInTimezone.getFullYear(), todayInTimezone.getMonth(), todayInTimezone.getDate())
+        const weekStartDate = new Date(
+          weekStartInTimezone.getFullYear(),
+          weekStartInTimezone.getMonth(),
+          weekStartInTimezone.getDate(),
+        )
+
+        if (entryDate.getTime() === todayDate.getTime()) {
           todayHours += workHours
         }
-        if (entryDate >= weekStart) {
+        if (entryDate >= weekStartDate) {
           weekHours += workHours
         }
         monthHours += workHours

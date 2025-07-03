@@ -30,37 +30,17 @@ export const getDetectedTimezone = (): string => {
 
 // Get current time in user's timezone as a Date object
 export const getCurrentTimeInTimezone = (timezone: string): Date => {
-  try {
-    // Get current time
-    const now = new Date()
-
-    // Create a date string in the target timezone
-    const timeInTimezone = now.toLocaleString("en-CA", {
-      timeZone: timezone,
-      year: "numeric",
-      month: "2-digit",
-      day: "2-digit",
-      hour: "2-digit",
-      minute: "2-digit",
-      second: "2-digit",
-      hour12: false,
-    })
-
-    // Parse the timezone-adjusted time back to a Date object
-    return new Date(timeInTimezone.replace(", ", "T"))
-  } catch (error) {
-    console.error("Error getting time in timezone:", error)
-    return new Date()
-  }
+  // Simply return the current time - we'll store it as UTC in the database
+  // and display it in the user's timezone when needed
+  return new Date()
 }
 
-// Convert a UTC date to user's timezone
-export const convertUTCToTimezone = (utcDate: Date | string, timezone: string): Date => {
+// Convert a UTC date to display in user's timezone (for display purposes only)
+export const convertUTCToTimezone = (utcDate: Date | string, timezone: string): string => {
   try {
     const date = typeof utcDate === "string" ? new Date(utcDate) : utcDate
 
-    // Get the time in the target timezone
-    const timeInTimezone = date.toLocaleString("en-CA", {
+    return date.toLocaleString("en-US", {
       timeZone: timezone,
       year: "numeric",
       month: "2-digit",
@@ -70,11 +50,9 @@ export const convertUTCToTimezone = (utcDate: Date | string, timezone: string): 
       second: "2-digit",
       hour12: false,
     })
-
-    return new Date(timeInTimezone.replace(", ", "T"))
   } catch (error) {
     console.error("Error converting UTC to timezone:", error)
-    return typeof utcDate === "string" ? new Date(utcDate) : utcDate
+    return (typeof utcDate === "string" ? new Date(utcDate) : utcDate).toLocaleString()
   }
 }
 
