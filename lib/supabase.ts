@@ -122,6 +122,38 @@ export type Database = {
           updated_at?: string
         }
       }
+      daily_updates: {
+        Row: {
+          id: string
+          user_id: string
+          date: string
+          message: string | null
+          photo_url: string | null
+          update_type: string | null
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          user_id: string
+          date?: string
+          message?: string | null
+          photo_url?: string | null
+          update_type?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          user_id?: string
+          date?: string
+          message?: string | null
+          photo_url?: string | null
+          update_type?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+      }
     }
   }
 }
@@ -151,4 +183,38 @@ export const deleteProfilePicture = async (userId: string) => {
     .remove([`${userId}/profile.jpg`, `${userId}/profile.jpeg`, `${userId}/profile.png`, `${userId}/profile.webp`])
 
   if (error) console.error("Error deleting profile picture:", error)
+}
+
+// Helper function to upload daily update photo
+export const uploadDailyUpdatePhoto = async (userId: string, file: File) => {
+  const fileExt = file.name.split(".").pop()
+  const timestamp = Date.now()
+  const fileName = `${userId}/${timestamp}.${fileExt}`
+
+  const { data, error } = await supabase.storage.from("daily-updates").upload(fileName, file)
+
+  if (error) throw error
+
+  const {
+    data: { publicUrl },
+  } = supabase.storage.from("daily-updates").getPublicUrl(fileName)
+
+  return publicUrl
+}
+
+// Helper function to delete daily update photo
+export const deleteDailyUpdatePhoto = async (photoUrl: string) => {
+  try {
+    // Extract the file path from the URL
+    const urlParts = photoUrl.split("/")
+    const bucketIndex = urlParts.findIndex((part) => part === "daily-updates")
+    if (bucketIndex === -1) return
+
+    const filePath = urlParts.slice(bucketIndex + 1).join("/")
+    const { error } = await supabase.storage.from("daily-updates").remove([filePath])
+
+    if (error) console.error("Error deleting daily update photo:", error)
+  } catch (error) {
+    console.error("Error parsing photo URL:", error)
+  }
 }
