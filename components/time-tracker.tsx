@@ -7,7 +7,7 @@ import { useAuth } from "@/lib/auth-context"
 import { supabase } from "@/lib/supabase"
 import { useToast } from "@/hooks/use-toast"
 import { Play, Square, Clock } from "lucide-react"
-import { formatTimeInTimezone } from "@/lib/timezone-utils"
+import { formatTimeInTimezone, getCurrentTimeInTimezone, calculateDuration, formatDuration } from "@/lib/timezone-utils"
 
 export function TimeTracker() {
   const { user } = useAuth()
@@ -17,6 +17,7 @@ export function TimeTracker() {
   const [elapsedTime, setElapsedTime] = useState(0)
   const [loading, setLoading] = useState(false)
   const [userTimezone, setUserTimezone] = useState("America/New_York")
+  const [currentTime, setCurrentTime] = useState(new Date())
 
   useEffect(() => {
     if (user) {
@@ -26,16 +27,25 @@ export function TimeTracker() {
   }, [user])
 
   useEffect(() => {
+    // Update current time every second
+    const timeInterval = setInterval(() => {
+      setCurrentTime(getCurrentTimeInTimezone(userTimezone))
+    }, 1000)
+
+    return () => clearInterval(timeInterval)
+  }, [userTimezone])
+
+  useEffect(() => {
     let interval: NodeJS.Timeout
     if (isClocked && currentEntry) {
       interval = setInterval(() => {
-        const clockInTime = new Date(currentEntry.clock_in).getTime()
-        const now = new Date().getTime()
-        setElapsedTime(Math.floor((now - clockInTime) / 1000))
+        const clockInTime = new Date(currentEntry.clock_in)
+        const now = getCurrentTimeInTimezone(userTimezone)
+        setElapsedTime(calculateDuration(clockInTime, now))
       }, 1000)
     }
     return () => clearInterval(interval)
-  }, [isClocked, currentEntry])
+  }, [isClocked, currentEntry, userTimezone])
 
   const fetchUserProfile = async () => {
     try {
@@ -72,9 +82,9 @@ export function TimeTracker() {
       if (data && data.length > 0) {
         setCurrentEntry(data[0])
         setIsClocked(true)
-        const clockInTime = new Date(data[0].clock_in).getTime()
-        const now = new Date().getTime()
-        setElapsedTime(Math.floor((now - clockInTime) / 1000))
+        const clockInTime = new Date(data[0].clock_in)
+        const now = getCurrentTimeInTimezone(userTimezone)
+        setElapsedTime(calculateDuration(clockInTime, now))
       }
     } catch (error: any) {
       console.error("Error checking active entry:", error)
@@ -84,11 +94,14 @@ export function TimeTracker() {
   const handleClockIn = async () => {
     setLoading(true)
     try {
+      // Get current time in user's timezone
+      const currentTimeInTimezone = getCurrentTimeInTimezone(userTimezone)
+
       const { data, error } = await supabase
         .from("time_entries")
         .insert({
           user_id: user?.id,
-          clock_in: new Date().toISOString(),
+          clock_in: currentTimeInTimezone.toISOString(),
         })
         .select()
         .single()
@@ -101,7 +114,7 @@ export function TimeTracker() {
 
       toast({
         title: "Clocked in",
-        description: `Your shift has started at ${formatTimeInTimezone(new Date(), userTimezone)}`,
+        description: `Your shift has started at ${formatTimeInTimezone(currentTimeInTimezone, userTimezone)}`,
       })
     } catch (error: any) {
       toast({
@@ -119,7 +132,9 @@ export function TimeTracker() {
 
     setLoading(true)
     try {
-      const clockOutTime = new Date()
+      // Get current time in user's timezone
+      const clockOutTime = getCurrentTimeInTimezone(userTimezone)
+
       const { error } = await supabase
         .from("time_entries")
         .update({
@@ -130,8 +145,10 @@ export function TimeTracker() {
 
       if (error) throw error
 
-      const hours = Math.floor(elapsedTime / 3600)
-      const minutes = Math.floor((elapsedTime % 3600) / 60)
+      // Calculate final duration
+      const clockInTime = new Date(currentEntry.clock_in)
+      const totalDuration = calculateDuration(clockInTime, clockOutTime)
+      const durationText = formatDuration(totalDuration)
 
       setIsClocked(false)
       setCurrentEntry(null)
@@ -139,7 +156,7 @@ export function TimeTracker() {
 
       toast({
         title: "Clocked out",
-        description: `Shift completed at ${formatTimeInTimezone(clockOutTime, userTimezone)} - Duration: ${hours}h ${minutes}m`,
+        description: `Shift completed at ${formatTimeInTimezone(clockOutTime, userTimezone)} - Duration: ${durationText}`,
       })
     } catch (error: any) {
       toast({
@@ -169,6 +186,23 @@ export function TimeTracker() {
         <CardDescription>{isClocked ? "Currently clocked in" : "Ready to start your shift"}</CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">
+        {/* Current time display */}
+        <div className="text-center bg-gray-50 p-4 rounded-lg">
+          <div className="text-lg font-semibold text-gray-700">Current Time</div>
+          <div className="text-2xl font-mono font-bold text-purple-600">
+            {formatTimeInTimezone(currentTime, userTimezone)}
+          </div>
+          <div className="text-sm text-gray-500">
+            {currentTime.toLocaleDateString("en-US", {
+              timeZone: userTimezone,
+              weekday: "long",
+              year: "numeric",
+              month: "long",
+              day: "numeric",
+            })}
+          </div>
+        </div>
+
         {isClocked && (
           <div className="text-center">
             <div className="text-4xl font-mono font-bold text-purple-600 mb-2">{formatTime(elapsedTime)}</div>
@@ -198,11 +232,6 @@ export function TimeTracker() {
         </div>
 
         {loading && <div className="text-center text-sm text-gray-600">Processing...</div>}
-
-        {/* Current time in user's timezone */}
-        <div className="text-center text-sm text-gray-500">
-          Current time: {formatTimeInTimezone(new Date(), userTimezone)}
-        </div>
       </CardContent>
     </Card>
   )

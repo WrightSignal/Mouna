@@ -6,7 +6,13 @@ import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Card, CardContent } from "@/components/ui/card"
 import { Clock, MapPin } from "lucide-react"
-import { TIMEZONE_OPTIONS, getDetectedTimezone, formatTimeInTimezone, getTimezoneInfo } from "@/lib/timezone-utils"
+import {
+  TIMEZONE_OPTIONS,
+  getDetectedTimezone,
+  formatTimeInTimezone,
+  getTimezoneInfo,
+  getCurrentTimeInTimezone,
+} from "@/lib/timezone-utils"
 
 interface TimezoneSelectorProps {
   value: string
@@ -17,7 +23,6 @@ interface TimezoneSelectorProps {
 export function TimezoneSelector({ value, onChange, className }: TimezoneSelectorProps) {
   const [showAllTimezones, setShowAllTimezones] = useState(false)
   const detectedTimezone = getDetectedTimezone()
-  const currentTime = new Date()
 
   // Group timezones by region
   const timezonesByRegion = TIMEZONE_OPTIONS.reduce(
@@ -61,7 +66,7 @@ export function TimezoneSelector({ value, onChange, className }: TimezoneSelecto
                         <div className="flex items-center justify-between w-full">
                           <span>{timezone.label}</span>
                           <span className="text-xs text-gray-500 ml-2">
-                            {formatTimeInTimezone(currentTime, timezone.value)}
+                            {formatTimeInTimezone(getCurrentTimeInTimezone(timezone.value), timezone.value)}
                           </span>
                         </div>
                       </SelectItem>
@@ -92,7 +97,9 @@ export function TimezoneSelector({ value, onChange, className }: TimezoneSelecto
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-blue-900">Current time in your timezone:</p>
-                <p className="text-lg font-bold text-blue-700">{formatTimeInTimezone(currentTime, value)}</p>
+                <p className="text-lg font-bold text-blue-700">
+                  {formatTimeInTimezone(getCurrentTimeInTimezone(value), value)}
+                </p>
               </div>
               <Clock className="h-8 w-8 text-blue-600" />
             </div>
@@ -108,7 +115,7 @@ export function TimezoneSelector({ value, onChange, className }: TimezoneSelecto
                 <div className="flex-1">
                   <p className="text-sm font-medium text-amber-900">Detected timezone: {detectedTimezoneInfo.label}</p>
                   <p className="text-xs text-amber-700 mt-1">
-                    Current time: {formatTimeInTimezone(currentTime, detectedTimezone)}
+                    Current time: {formatTimeInTimezone(getCurrentTimeInTimezone(detectedTimezone), detectedTimezone)}
                   </p>
                   <Button
                     variant="outline"

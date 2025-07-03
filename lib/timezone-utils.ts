@@ -28,11 +28,85 @@ export const getDetectedTimezone = (): string => {
   }
 }
 
+// Get current time in user's timezone as a Date object
+export const getCurrentTimeInTimezone = (timezone: string): Date => {
+  try {
+    // Get current time
+    const now = new Date()
+
+    // Create a date string in the target timezone
+    const timeInTimezone = now.toLocaleString("en-CA", {
+      timeZone: timezone,
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+      hour: "2-digit",
+      minute: "2-digit",
+      second: "2-digit",
+      hour12: false,
+    })
+
+    // Parse the timezone-adjusted time back to a Date object
+    return new Date(timeInTimezone.replace(", ", "T"))
+  } catch (error) {
+    console.error("Error getting time in timezone:", error)
+    return new Date()
+  }
+}
+
+// Convert a UTC date to user's timezone
+export const convertUTCToTimezone = (utcDate: Date | string, timezone: string): Date => {
+  try {
+    const date = typeof utcDate === "string" ? new Date(utcDate) : utcDate
+
+    // Get the time in the target timezone
+    const timeInTimezone = date.toLocaleString("en-CA", {
+      timeZone: timezone,
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+      hour: "2-digit",
+      minute: "2-digit",
+      second: "2-digit",
+      hour12: false,
+    })
+
+    return new Date(timeInTimezone.replace(", ", "T"))
+  } catch (error) {
+    console.error("Error converting UTC to timezone:", error)
+    return typeof utcDate === "string" ? new Date(utcDate) : utcDate
+  }
+}
+
+// Convert timezone date to UTC for storage
+export const convertTimezoneToUTC = (localDate: Date, timezone: string): Date => {
+  try {
+    // Create a date string that represents the local time
+    const localTimeString = localDate.toISOString().slice(0, 19) // Remove Z
+
+    // Parse this as if it were in the target timezone
+    const tempDate = new Date(localTimeString)
+
+    // Get what this time would be in UTC if it were in the target timezone
+    const utcTime = new Date(tempDate.toLocaleString("en-US", { timeZone: "UTC" }))
+    const timezoneTime = new Date(tempDate.toLocaleString("en-US", { timeZone: timezone }))
+
+    // Calculate the offset
+    const offset = utcTime.getTime() - timezoneTime.getTime()
+
+    // Apply the offset to get the correct UTC time
+    return new Date(localDate.getTime() + offset)
+  } catch (error) {
+    console.error("Error converting timezone to UTC:", error)
+    return localDate
+  }
+}
+
 // Format time in user's timezone
 export const formatTimeInTimezone = (date: Date | string, timezone: string): string => {
-  const dateObj = typeof date === "string" ? new Date(date) : date
-
   try {
+    const dateObj = typeof date === "string" ? new Date(date) : date
+
     return dateObj.toLocaleTimeString("en-US", {
       timeZone: timezone,
       hour: "2-digit",
@@ -41,15 +115,17 @@ export const formatTimeInTimezone = (date: Date | string, timezone: string): str
       hour12: true,
     })
   } catch (error) {
+    console.error("Error formatting time:", error)
+    const dateObj = typeof date === "string" ? new Date(date) : date
     return dateObj.toLocaleTimeString()
   }
 }
 
 // Format date in user's timezone
 export const formatDateInTimezone = (date: Date | string, timezone: string): string => {
-  const dateObj = typeof date === "string" ? new Date(date) : date
-
   try {
+    const dateObj = typeof date === "string" ? new Date(date) : date
+
     return dateObj.toLocaleDateString("en-US", {
       timeZone: timezone,
       year: "numeric",
@@ -57,37 +133,30 @@ export const formatDateInTimezone = (date: Date | string, timezone: string): str
       day: "numeric",
     })
   } catch (error) {
+    console.error("Error formatting date:", error)
+    const dateObj = typeof date === "string" ? new Date(date) : date
     return dateObj.toLocaleDateString()
   }
 }
 
-// Get current time in user's timezone
-export const getCurrentTimeInTimezone = (timezone: string): Date => {
+// Format date and time in user's timezone
+export const formatDateTimeInTimezone = (date: Date | string, timezone: string): string => {
   try {
-    // Create a date in the user's timezone
-    const now = new Date()
-    const utc = now.getTime() + now.getTimezoneOffset() * 60000
+    const dateObj = typeof date === "string" ? new Date(date) : date
 
-    // Get timezone offset
-    const tempDate = new Date()
-    const targetTime = new Date(tempDate.toLocaleString("en-US", { timeZone: timezone }))
-    const localTime = new Date(tempDate.toLocaleString("en-US"))
-    const offset = targetTime.getTime() - localTime.getTime()
-
-    return new Date(utc + offset)
+    return dateObj.toLocaleString("en-US", {
+      timeZone: timezone,
+      year: "numeric",
+      month: "short",
+      day: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+      hour12: true,
+    })
   } catch (error) {
-    return new Date()
-  }
-}
-
-// Convert UTC time to user's timezone
-export const convertToUserTimezone = (utcDate: Date | string, timezone: string): Date => {
-  const dateObj = typeof utcDate === "string" ? new Date(utcDate) : utcDate
-
-  try {
-    return new Date(dateObj.toLocaleString("en-US", { timeZone: timezone }))
-  } catch (error) {
-    return dateObj
+    console.error("Error formatting datetime:", error)
+    const dateObj = typeof date === "string" ? new Date(date) : date
+    return dateObj.toLocaleString()
   }
 }
 
@@ -116,5 +185,25 @@ export const getTimezoneInfo = (timezone: string) => {
       label: timezone,
       region: "Other",
     }
+  }
+}
+
+// Calculate duration between two dates in seconds
+export const calculateDuration = (startDate: Date | string, endDate: Date | string): number => {
+  const start = typeof startDate === "string" ? new Date(startDate) : startDate
+  const end = typeof endDate === "string" ? new Date(endDate) : endDate
+
+  return Math.floor((end.getTime() - start.getTime()) / 1000)
+}
+
+// Format duration in hours and minutes
+export const formatDuration = (seconds: number): string => {
+  const hours = Math.floor(seconds / 3600)
+  const minutes = Math.floor((seconds % 3600) / 60)
+
+  if (hours > 0) {
+    return `${hours}h ${minutes}m`
+  } else {
+    return `${minutes}m`
   }
 }
