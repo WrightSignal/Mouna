@@ -28,10 +28,11 @@ export const getDetectedTimezone = (): string => {
   }
 }
 
-// Get current time in user's timezone as a Date object
+// Get current time - always returns UTC time for consistent database storage
 export const getCurrentTimeInTimezone = (timezone: string): Date => {
-  // Simply return the current time - we'll store it as UTC in the database
-  // and display it in the user's timezone when needed
+  // Always return current UTC time for database storage
+  // The timezone parameter is kept for API consistency but not used
+  // All times are stored in UTC and converted for display only
   return new Date()
 }
 
@@ -56,35 +57,17 @@ export const convertUTCToTimezone = (utcDate: Date | string, timezone: string): 
   }
 }
 
-// Convert timezone date to UTC for storage
+// Convert timezone date to UTC for storage (not needed anymore but kept for compatibility)
 export const convertTimezoneToUTC = (localDate: Date, timezone: string): Date => {
-  try {
-    // Create a date string that represents the local time
-    const localTimeString = localDate.toISOString().slice(0, 19) // Remove Z
-
-    // Parse this as if it were in the target timezone
-    const tempDate = new Date(localTimeString)
-
-    // Get what this time would be in UTC if it were in the target timezone
-    const utcTime = new Date(tempDate.toLocaleString("en-US", { timeZone: "UTC" }))
-    const timezoneTime = new Date(tempDate.toLocaleString("en-US", { timeZone: timezone }))
-
-    // Calculate the offset
-    const offset = utcTime.getTime() - timezoneTime.getTime()
-
-    // Apply the offset to get the correct UTC time
-    return new Date(localDate.getTime() + offset)
-  } catch (error) {
-    console.error("Error converting timezone to UTC:", error)
-    return localDate
-  }
+  // Just return the date as-is since we're always working with UTC
+  return localDate
 }
 
 // Format time in user's timezone
 export const formatTimeInTimezone = (date: Date | string, timezone: string): string => {
   try {
     const dateObj = typeof date === "string" ? new Date(date) : date
-
+    
     return dateObj.toLocaleTimeString("en-US", {
       timeZone: timezone,
       hour: "2-digit",
@@ -95,7 +78,12 @@ export const formatTimeInTimezone = (date: Date | string, timezone: string): str
   } catch (error) {
     console.error("Error formatting time:", error)
     const dateObj = typeof date === "string" ? new Date(date) : date
-    return dateObj.toLocaleTimeString()
+    return dateObj.toLocaleTimeString("en-US", {
+      hour: "2-digit",
+      minute: "2-digit", 
+      second: "2-digit",
+      hour12: true,
+    })
   }
 }
 
@@ -171,7 +159,8 @@ export const calculateDuration = (startDate: Date | string, endDate: Date | stri
   const start = typeof startDate === "string" ? new Date(startDate) : startDate
   const end = typeof endDate === "string" ? new Date(endDate) : endDate
 
-  return Math.floor((end.getTime() - start.getTime()) / 1000)
+  const durationMs = end.getTime() - start.getTime()
+  return Math.floor(durationMs / 1000)
 }
 
 // Format duration in hours and minutes

@@ -16,7 +16,13 @@ export function TimeTracker() {
   const [currentEntry, setCurrentEntry] = useState<any>(null)
   const [elapsedTime, setElapsedTime] = useState(0)
   const [loading, setLoading] = useState(false)
-  const [userTimezone, setUserTimezone] = useState("America/New_York")
+  const [userTimezone, setUserTimezone] = useState(() => {
+    try {
+      return Intl.DateTimeFormat().resolvedOptions().timeZone
+    } catch (error) {
+      return "America/New_York"
+    }
+  })
   const [currentTime, setCurrentTime] = useState(new Date())
 
   useEffect(() => {
@@ -40,8 +46,10 @@ export function TimeTracker() {
     if (isClocked && currentEntry) {
       interval = setInterval(() => {
         const clockInTime = new Date(currentEntry.clock_in)
-        const now = new Date() // Use actual current time, not timezone-adjusted
-        setElapsedTime(calculateDuration(clockInTime, now))
+        const now = new Date() // Current UTC time
+        const duration = calculateDuration(clockInTime, now)
+        // Ensure we never show negative time
+        setElapsedTime(Math.max(0, duration))
       }, 1000)
     }
     return () => clearInterval(interval)
@@ -54,9 +62,19 @@ export function TimeTracker() {
       if (error) throw error
       if (data?.timezone) {
         setUserTimezone(data.timezone)
+        console.log(`Loaded user timezone from profile: ${data.timezone}`)
+      } else {
+        // Fallback to detected timezone if no timezone in profile
+        const detectedTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone
+        setUserTimezone(detectedTimezone)
+        console.log(`Using detected timezone (no profile timezone): ${detectedTimezone}`)
       }
     } catch (error: any) {
       console.error("Error fetching user profile:", error)
+      // Fallback to detected timezone on error
+      const detectedTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone
+      setUserTimezone(detectedTimezone)
+      console.log(`Using detected timezone (error fetching profile): ${detectedTimezone}`)
     }
   }
 
@@ -83,8 +101,10 @@ export function TimeTracker() {
         setCurrentEntry(data[0])
         setIsClocked(true)
         const clockInTime = new Date(data[0].clock_in)
-        const now = new Date() // Use actual current time
-        setElapsedTime(calculateDuration(clockInTime, now))
+        const now = new Date() // Current UTC time
+        const duration = calculateDuration(clockInTime, now)
+        // Ensure we never show negative time
+        setElapsedTime(Math.max(0, duration))
       }
     } catch (error: any) {
       console.error("Error checking active entry:", error)
@@ -94,14 +114,14 @@ export function TimeTracker() {
   const handleClockIn = async () => {
     setLoading(true)
     try {
-      // Get current time in user's timezone and store as UTC
-      const currentTimeInTimezone = getCurrentTimeInTimezone(userTimezone)
+      // Get current UTC time for database storage
+      const currentTime = new Date()
 
       const { data, error } = await supabase
         .from("time_entries")
         .insert({
           user_id: user?.id,
-          clock_in: currentTimeInTimezone.toISOString(),
+          clock_in: currentTime.toISOString(),
         })
         .select()
         .single()
@@ -112,9 +132,16 @@ export function TimeTracker() {
       setIsClocked(true)
       setElapsedTime(0)
 
+      // Debug logging
+      console.log(`Clock in time (UTC): ${currentTime.toISOString()}`)
+      console.log(`User timezone: ${userTimezone}`)
+      
+      const localTime = formatTimeInTimezone(currentTime, userTimezone)
+      console.log(`Formatted local time: ${localTime}`)
+
       toast({
         title: "Clocked in",
-        description: `Your shift has started at ${formatTimeInTimezone(currentTimeInTimezone, userTimezone)}`,
+        description: `Your shift has started at ${localTime}`,
       })
     } catch (error: any) {
       toast({
@@ -132,8 +159,8 @@ export function TimeTracker() {
 
     setLoading(true)
     try {
-      // Get current time in user's timezone and store as UTC
-      const clockOutTime = getCurrentTimeInTimezone(userTimezone)
+      // Get current UTC time for database storage
+      const clockOutTime = new Date()
 
       const { error } = await supabase
         .from("time_entries")
@@ -145,7 +172,7 @@ export function TimeTracker() {
 
       if (error) throw error
 
-      // Calculate final duration using the stored UTC times
+      // Calculate final duration using UTC times
       const clockInTime = new Date(currentEntry.clock_in)
       const totalDuration = calculateDuration(clockInTime, clockOutTime)
       const durationText = formatDuration(totalDuration)
@@ -207,7 +234,7 @@ export function TimeTracker() {
           <div className="text-center">
             <div className="text-4xl font-mono font-bold text-purple-600 mb-2">{formatTime(elapsedTime)}</div>
             <p className="text-sm text-gray-600">
-              Started at {currentEntry && formatTimeInTimezone(currentEntry.clock_in, userTimezone)}
+              Started at {currentEntry && formatTimeInTimezone(new Date(currentEntry.clock_in), userTimezone)}
             </p>
           </div>
         )}

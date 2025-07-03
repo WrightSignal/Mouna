@@ -75,17 +75,17 @@ export function TimeSummary() {
       let monthHours = 0
 
       data?.forEach((entry) => {
-        // Convert UTC times to user's timezone for date comparison
-        const clockInLocal = new Date(entry.clock_in)
-        const clockOutLocal = new Date(entry.clock_out)
+        // Use UTC times for duration calculation (database stores UTC)
+        const clockInUTC = new Date(entry.clock_in)
+        const clockOutUTC = new Date(entry.clock_out)
 
-        // Calculate duration in hours
-        const durationSeconds = calculateDuration(entry.clock_in, entry.clock_out)
+        // Calculate duration in hours using UTC times
+        const durationSeconds = calculateDuration(clockInUTC, clockOutUTC)
         const breakHours = (entry.break_duration || 0) / 60 // convert minutes to hours
         const workHours = durationSeconds / 3600 - breakHours // convert seconds to hours
 
-        // Get the date in user's timezone for comparison
-        const entryDateInTimezone = new Date(clockInLocal.toLocaleString("en-US", { timeZone: userTimezone }))
+        // Get the date in user's timezone for date comparison
+        const entryDateInTimezone = new Date(clockInUTC.toLocaleString("en-US", { timeZone: userTimezone }))
         const todayInTimezone = new Date(now.toLocaleString("en-US", { timeZone: userTimezone }))
         const weekStartInTimezone = new Date(todayInTimezone)
         weekStartInTimezone.setDate(todayInTimezone.getDate() - todayInTimezone.getDay())
@@ -125,7 +125,10 @@ export function TimeSummary() {
   }
 
   const formatHours = (hours: number) => {
-    return `${hours.toFixed(1)}h`
+    const wholeHours = Math.floor(hours)
+    const minutes = Math.round((hours - wholeHours) * 60)
+    
+    return `${wholeHours.toString().padStart(2, '0')}h:${minutes.toString().padStart(2, '0')}m`
   }
 
   return (
