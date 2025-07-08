@@ -28,7 +28,7 @@ export function DatabaseSetupNotice({ onRefresh }: DatabaseSetupNoticeProps) {
               <AlertTriangle className="h-4 w-4" />
               <AlertTitle>Setup Required</AlertTitle>
               <AlertDescription>
-                Please run the database setup script to create the necessary tables for the Nanny Time Tracking App.
+                Please run the database setup script to create the necessary tables for Mouna.
               </AlertDescription>
             </Alert>
 
@@ -48,7 +48,7 @@ export function DatabaseSetupNotice({ onRefresh }: DatabaseSetupNoticeProps) {
             <div className="bg-blue-50 p-4 rounded-lg">
               <h4 className="font-medium text-blue-900 mb-2">What gets created:</h4>
               <ul className="text-sm text-blue-800 space-y-1">
-                <li>• User profiles table for storing nanny information</li>
+                <li>• User profiles table for storing user information</li>
                 <li>• Time entries table for clock-in/clock-out records</li>
                 <li>• Mileage entries table for trip logging</li>
                 <li>• Scheduled shifts table (for future features)</li>
@@ -58,7 +58,7 @@ export function DatabaseSetupNotice({ onRefresh }: DatabaseSetupNoticeProps) {
             </div>
 
             <div className="flex justify-center space-x-4">
-              <Button onClick={onRefresh} className="bg-purple-600 hover:bg-purple-700">
+              <Button onClick={onRefresh} className="bg-[#440044] hover:bg-[#330033]">
                 <RefreshCw className="h-4 w-4 mr-2" />
                 Check Database
               </Button>

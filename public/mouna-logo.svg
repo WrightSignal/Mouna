@@ -1,0 +1,47 @@
+<svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <clipPath id="circle-clip">
+      <circle cx="100" cy="100" r="100"/>
+    </clipPath>
+  </defs>
+  
+  <!-- Black background circle -->
+  <circle cx="100" cy="100" r="100" fill="#000000"/>
+  
+  <!-- Moon surface -->
+  <g clip-path="url(#circle-clip)">
+    <!-- Main moon body -->
+    <ellipse cx="120" cy="100" rx="60" ry="90" fill="#C0C0C0"/>
+    
+    <!-- Moon surface details -->
+    <ellipse cx="130" cy="80" rx="8" ry="6" fill="#A0A0A0"/>
+    <ellipse cx="115" cy="65" rx="5" ry="4" fill="#A0A0A0"/>
+    <ellipse cx="140" cy="110" rx="12" ry="8" fill="#A0A0A0"/>
+    <ellipse cx="125" cy="130" rx="6" ry="5" fill="#A0A0A0"/>
+    <ellipse cx="110" cy="145" rx="4" ry="3" fill="#A0A0A0"/>
+    
+    <!-- Mare (dark areas) -->
+    <ellipse cx="135" cy="90" rx="20" ry="25" fill="#909090"/>
+    <ellipse cx="120" cy="125" rx="15" ry="18" fill="#909090"/>
+  </g>
+  
+  <!-- Airplane silhouette -->
+  <g transform="translate(85, 95) scale(0.8)">
+    <!-- Main fuselage -->
+    <rect x="0" y="8" width="30" height="4" fill="#000000"/>
+    
+    <!-- Wings -->
+    <rect x="8" y="4" width="14" height="16" fill="#000000"/>
+    
+    <!-- Wing struts -->
+    <rect x="10" y="2" width="1" height="20" fill="#000000"/>
+    <rect x="12" y="2" width="1" height="20" fill="#000000"/>
+    <rect x="14" y="2" width="1" height="20" fill="#000000"/>
+    <rect x="16" y="2" width="1" height="20" fill="#000000"/>
+    <rect x="18" y="2" width="1" height="20" fill="#000000"/>
+    <rect x="20" y="2" width="1" height="20" fill="#000000"/>
+    
+    <!-- Tail -->
+    <polygon points="30,8 35,6 35,14 30,12" fill="#000000"/>
+  </g>
+</svg> 

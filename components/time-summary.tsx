@@ -152,9 +152,9 @@ export function TimeSummary() {
             <div className="text-sm text-green-600">This Week</div>
           </div>
 
-          <div className="text-center p-4 bg-purple-50 rounded-lg">
-            <div className="text-2xl font-bold text-purple-600">{formatHours(summary.thisMonth)}</div>
-            <div className="text-sm text-purple-600">This Month</div>
+                      <div className="text-center p-4 bg-[#44004410] rounded-lg">
+                          <div className="text-2xl font-bold text-[#440044]">{formatHours(summary.thisMonth)}</div>
+              <div className="text-sm text-[#440044]">This Month</div>
           </div>
 
           <div className="text-center p-4 bg-orange-50 rounded-lg">

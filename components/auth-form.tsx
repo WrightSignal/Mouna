@@ -10,7 +10,6 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { useAuth } from "@/lib/auth-context"
 import { useToast } from "@/hooks/use-toast"
-import { Clock } from "lucide-react"
 
 export function AuthForm() {
   const [email, setEmail] = useState("")
@@ -63,11 +62,11 @@ export function AuthForm() {
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
           <div className="flex items-center justify-center mb-4">
-            <div className="bg-purple-600 p-3 rounded-full">
-              <Clock className="h-8 w-8 text-white" />
+            <div className="w-16 h-16 rounded-full overflow-hidden">
+              <img src="/mouna-logo.svg" alt="Mouna Logo" className="w-full h-full object-cover" />
             </div>
           </div>
-          <h1 className="text-3xl font-bold text-gray-900">Nanny Time Tracker</h1>
+          <h1 className="text-3xl font-bold text-gray-900">Mouna</h1>
           <p className="text-gray-600 mt-2">Professional time tracking made simple</p>
         </div>
 

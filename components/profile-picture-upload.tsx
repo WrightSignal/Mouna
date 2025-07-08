@@ -114,7 +114,7 @@ export function ProfilePictureUpload({
       <div className="relative">
         <Avatar className="h-24 w-24">
           <AvatarImage src={imageUrl || undefined} alt={userName} />
-          <AvatarFallback className="text-lg bg-purple-100 text-purple-600">{getInitials(userName)}</AvatarFallback>
+          <AvatarFallback className="text-lg bg-[#44004420] text-[#440044]">{getInitials(userName)}</AvatarFallback>
         </Avatar>
 
         {imageUrl && (
@@ -134,7 +134,7 @@ export function ProfilePictureUpload({
         <Button variant="outline" size="sm" onClick={() => fileInputRef.current?.click()} disabled={uploading}>
           {uploading ? (
             <>
-              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-purple-600 mr-2" />
+              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-[#440044] mr-2" />
               Uploading...
             </>
           ) : (

@@ -30,7 +30,7 @@ const config: Config = {
           foreground: "hsl(var(--primary-foreground))",
         },
         secondary: {
-          DEFAULT: "#6B46C1", // Purple
+          DEFAULT: "#440044", // Deep Purple
           foreground: "hsl(var(--secondary-foreground))",
         },
         destructive: {

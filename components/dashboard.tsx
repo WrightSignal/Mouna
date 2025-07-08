@@ -85,7 +85,7 @@ export function Dashboard() {
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600"></div>
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#440044]"></div>
       </div>
     )
   }
@@ -103,18 +103,18 @@ export function Dashboard() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             <div className="flex items-center">
-              <div className="bg-purple-600 p-2 rounded-lg">
-                <Clock className="h-6 w-6 text-white" />
+              <div className="w-10 h-10 rounded-lg overflow-hidden">
+                <img src="/mouna-logo.svg" alt="Mouna Logo" className="w-full h-full object-cover" />
               </div>
               <div className="ml-3">
-                <h1 className="text-xl font-semibold text-gray-900">Nanny Time Tracker</h1>
+                <h1 className="text-xl font-semibold text-gray-900">Mouna</h1>
               </div>
             </div>
             <div className="flex items-center space-x-4">
               <div className="flex items-center space-x-3">
                 <Avatar className="h-8 w-8">
                   <AvatarImage src={profile.profile_picture_url || undefined} alt={displayName} />
-                  <AvatarFallback className="bg-purple-100 text-purple-600 text-sm">
+                  <AvatarFallback className="bg-[#44004420] text-[#440044] text-sm">
                     {getInitials(displayName)}
                   </AvatarFallback>
                 </Avatar>
@@ -137,7 +137,7 @@ export function Dashboard() {
               onClick={() => setActiveTab("dashboard")}
               className={`py-4 px-1 border-b-2 font-medium text-sm ${
                 activeTab === "dashboard"
-                  ? "border-purple-500 text-purple-600"
+                  ? "border-[#440044] text-[#440044]"
                   : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
               }`}
             >
@@ -147,7 +147,7 @@ export function Dashboard() {
               onClick={() => setActiveTab("time")}
               className={`py-4 px-1 border-b-2 font-medium text-sm ${
                 activeTab === "time"
-                  ? "border-purple-500 text-purple-600"
+                  ? "border-[#440044] text-[#440044]"
                   : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
               }`}
             >
@@ -157,7 +157,7 @@ export function Dashboard() {
               onClick={() => setActiveTab("mileage")}
               className={`py-4 px-1 border-b-2 font-medium text-sm ${
                 activeTab === "mileage"
-                  ? "border-purple-500 text-purple-600"
+                  ? "border-[#440044] text-[#440044]"
                   : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
               }`}
             >
@@ -167,7 +167,7 @@ export function Dashboard() {
               onClick={() => setActiveTab("communicate")}
               className={`py-4 px-1 border-b-2 font-medium text-sm ${
                 activeTab === "communicate"
-                  ? "border-purple-500 text-purple-600"
+                  ? "border-[#440044] text-[#440044]"
                   : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
               }`}
             >
@@ -177,7 +177,7 @@ export function Dashboard() {
               onClick={() => setActiveTab("profile")}
               className={`py-4 px-1 border-b-2 font-medium text-sm ${
                 activeTab === "profile"
-                  ? "border-purple-500 text-purple-600"
+                  ? "border-[#440044] text-[#440044]"
                   : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
               }`}
             >

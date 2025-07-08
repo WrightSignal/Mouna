@@ -216,7 +216,7 @@ export function TimeTracker() {
         {/* Current time display */}
         <div className="text-center bg-gray-50 p-4 rounded-lg">
           <div className="text-lg font-semibold text-gray-700">Current Time</div>
-          <div className="text-2xl font-mono font-bold text-purple-600">
+                          <div className="text-2xl font-mono font-bold text-[#440044]">
             {formatTimeInTimezone(currentTime, userTimezone)}
           </div>
           <div className="text-sm text-gray-500">
@@ -232,7 +232,7 @@ export function TimeTracker() {
 
         {isClocked && (
           <div className="text-center">
-            <div className="text-4xl font-mono font-bold text-purple-600 mb-2">{formatTime(elapsedTime)}</div>
+                          <div className="text-4xl font-mono font-bold text-[#440044] mb-2">{formatTime(elapsedTime)}</div>
             <p className="text-sm text-gray-600">
               Started at {currentEntry && formatTimeInTimezone(new Date(currentEntry.clock_in), userTimezone)}
             </p>

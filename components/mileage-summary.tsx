@@ -104,9 +104,9 @@ export function MileageSummary() {
           <div className="space-y-4">
             <h3 className="font-medium text-gray-900">Last Month</h3>
             <div className="grid grid-cols-2 gap-4">
-              <div className="text-center p-4 bg-purple-50 rounded-lg">
-                <div className="text-2xl font-bold text-purple-600">{summary.lastMonth.miles.toFixed(1)}</div>
-                <div className="text-sm text-purple-600">Miles</div>
+                              <div className="text-center p-4 bg-[#44004410] rounded-lg">
+                              <div className="text-2xl font-bold text-[#440044]">{summary.lastMonth.miles.toFixed(1)}</div>
+              <div className="text-sm text-[#440044]">Miles</div>
               </div>
               <div className="text-center p-4 bg-pink-50 rounded-lg">
                 <div className="text-2xl font-bold text-pink-600">${summary.lastMonth.reimbursement.toFixed(2)}</div>
