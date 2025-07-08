@@ -1,8 +1,12 @@
 import { createClient } from "@supabase/supabase-js"
 
+// Supabase configuration - make sure these environment variables are set
+// NEXT_PUBLIC_SUPABASE_URL should be your Supabase project URL
+// NEXT_PUBLIC_SUPABASE_ANON_KEY should be your Supabase anon key
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
 
+// Initialize Supabase client
 export const supabase = createClient(supabaseUrl, supabaseAnonKey)
 
 export type Database = {

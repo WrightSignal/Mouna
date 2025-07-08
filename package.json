@@ -1,7 +1,8 @@
 {
-  "name": "my-v0-project",
+  "name": "mouna-app",
   "version": "0.1.0",
   "private": true,
+  "homepage": "https://mouna.app",
   "scripts": {
     "build": "next build",
     "dev": "next dev",
